@@ -240,7 +240,7 @@ class Visualizer:
 
     def _generate_category_bar_chart(self):
         """Generate category distribution bar chart across products."""
-        if not self.community_stats:
+        if not self.community_stats or not self.chart_settings.get('show_category_bar', True):
             return
 
         # Group by product
@@ -280,7 +280,7 @@ class Visualizer:
 
     def _generate_stacked_category_chart(self):
         """Generate stacked category chart."""
-        if not self.community_stats:
+        if not self.community_stats or not self.chart_settings.get('show_stacked_category', True):
             return
 
         # Similar to category bar chart but stacked
@@ -315,6 +315,10 @@ class Visualizer:
 
     def _generate_word_clouds(self):
         """Generate word clouds for each product."""
+        # Check if word clouds are enabled in config
+        if not self.chart_settings.get('show_wordclouds', True):
+            return
+
         if not self.enriched_dir:
             # Create placeholder word clouds if no enriched data
             for stat in self.product_stats:

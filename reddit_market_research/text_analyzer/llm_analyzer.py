@@ -11,7 +11,11 @@ from typing import Dict, Any, List, Optional
 from .base_analyzer import BaseAnalyzer
 
 try:
-    from ollama_text_client import OllamaTextClient
+    import sys
+    from pathlib import Path
+    # Add parent directory to path to find ollama_clients
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+    from ollama_clients.ollama_clients.text_client import OllamaTextClient
     OLLAMA_CLIENT_AVAILABLE = True
 except ImportError:
     OLLAMA_CLIENT_AVAILABLE = False
@@ -152,7 +156,13 @@ Rules:
                     "top_p": 0.9
                 }
             )
-            return response.get('response', '').strip()
+            # Handle both dict and Response object types
+            if isinstance(response, dict):
+                return response.get('response', '').strip()
+            else:
+                # If it's a Response object, get the JSON content
+                import json
+                return json.loads(response.content).get('response', '').strip()
         except Exception as e:
             raise Exception(f"LLM API error: {str(e)}")
 
