@@ -165,15 +165,20 @@ Rules:
             if start >= 0 and end > start:
                 json_str = response[start:end]
                 data = json.loads(json_str)
+                print(f"DEBUG: Parsed JSON data: {data}")  # Added logging
 
                 # Validate required fields
-                required = ['sentiment', 'category', 'is_question', 'confidence']
+                required = ['sentiment', 'category', 'confidence']
+                missing_fields = [key for key in required if key not in data]
+                if missing_fields:
+                    print(f"DEBUG: Missing required fields: {missing_fields}")  # Added logging
                 if all(key in data for key in required):
                     # Validate values
                     data['sentiment'] = self._validate_sentiment(data['sentiment'])
                     data['category'] = self._validate_category(data['category'])
-                    data['is_question'] = bool(data['is_question'])
                     data['confidence'] = max(0.0, min(1.0, float(data.get('confidence', 0.5))))
+                    # Add is_question based on category
+                    data['is_question'] = data['category'] == 'Question'
                     return data
 
         except (json.JSONDecodeError, ValueError, KeyError) as e:
