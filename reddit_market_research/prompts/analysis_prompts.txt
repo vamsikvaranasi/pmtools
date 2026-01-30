@@ -1,0 +1,30 @@
+# LLM Analysis Prompts
+
+## Main Analysis Prompt
+Analyze the following Reddit post/comment text and provide a JSON response with sentiment and category analysis.
+
+Text: {text}
+
+Respond with valid JSON in this exact format:
+{{
+    "sentiment": "positive" or "neutral" or "negative",
+    "category": "Question|Statement|Praise|Complaint|Sharing|Answer|Agreement|Disagreement",
+    "confidence": 0.0-1.0,
+    "reasoning": "brief explanation"
+}}
+
+Rules:
+- Sentiment: "positive" for favorable content, "neutral" for neutral content, "negative" for unfavorable
+- Category: Choose the most appropriate from the list
+- confidence: Your certainty level (0.0-1.0)
+- reasoning: 1-2 sentence explanation
+
+## Category Definitions
+- Question: Asking for information, help, or clarification
+- Statement: Sharing information or opinion without specific intent
+- Praise: Expressing positive sentiment about the product/service
+- Complaint: Expressing negative sentiment or problems
+- Sharing: Demonstrating work done or solutions created
+- Answer: Providing solutions or responses to questions
+- Agreement: Expressing agreement with previous content
+- Disagreement: Expressing disagreement with previous content

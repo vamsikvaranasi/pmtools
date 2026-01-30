@@ -1,0 +1,108 @@
+# Reddit Market Research Tool Configuration
+# This file contains all settings and mappings for the toolchain
+
+# Community to Product Name Mappings
+# Format: community_name: product_display_name
+product_mappings:
+  r/boltnewbuilders: Boltnewbuilders
+  r/lovable: Lovable
+  r/replit: Replit
+
+# Output Configuration
+output:
+  # Base output directory (relative paths are relative to where the script is run)
+  base_dir: output
+  # Whether to create timestamped subdirectories for each run
+  use_timestamp: true
+  # Date format for timestamped directories
+  timestamp_format: "%Y_%m_%d_%H%M"
+
+# Data Processing Configuration
+data_processing:
+  # Minimum required fields for posts
+  post_fields:
+    - id
+    - url
+    - title
+    - communityName
+    - body
+    - dataType
+    - createdAt
+    - upVotes
+  # Minimum required fields for comments
+  comment_fields:
+    - id
+    - url
+    - postId
+    - parentId
+    - communityName
+    - body
+    - dataType
+    - createdAt
+    - upVotes
+
+# Text Analysis Configuration
+text_analysis:
+  # Default analysis level: toy, nlp, or llm
+  default_level: nlp
+  # LLM settings (used when level=llm)
+  llm:
+    model: mistral:latest
+    base_url: http://localhost:11434
+    max_retries: 3
+    retry_delay: 1.0
+  # Custom prompt file (optional)
+  prompt_file: null
+
+# Visualization Configuration
+visualization:
+  # Enable/disable specific visualizations
+  charts:
+    sentiment_bar_chart: true
+    sentiment_pie_charts: true
+    category_bar_chart: true
+    stacked_category_chart: true
+    word_clouds: false
+  
+  # Color scheme for sentiment (with gradients)
+  colors:
+    sentiment:
+      positive: "#2E8B57"  # Sea green
+      positive_gradient: ["#1a5c38", "#2E8B57", "#3cb371"]  # Dark to light green
+      negative: "#DC143C"  # Crimson
+      negative_gradient: ["#8b0000", "#DC143C", "#ff6347"]  # Dark to light red
+      neutral: "#808080"   # Gray
+      neutral_gradient: ["#4a4a4a", "#808080", "#a9a9a9"]  # Dark to light gray
+    category:
+      Question: "#1E90FF"   # Dodger blue
+      Praise: "#32CD32"     # Lime green
+      Complaint: "#FF6347"  # Tomato
+      Sharing: "#FFD700"    # Gold
+      Statement: "#9370DB"  # Medium purple
+      Answer: "#FF69B4"     # Hot pink
+  
+  # Chart styling
+  styling:
+    figure_size:
+      width: 10
+      height: 6
+    dpi: 300
+    font_size:
+      title: 14
+      label: 12
+      ticks: 10
+    title_font_size: 16
+    legend_font_size: 11
+
+# Report Configuration
+reporting:
+  # Generate these report types
+  reports:
+    executive_summary: true
+    final_report: true
+    qa_reports: true
+
+# Logging Configuration
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

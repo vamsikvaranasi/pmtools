@@ -1,0 +1,1 @@
+A breathtaking landscape photograph of a serene mountain lake at golden hour. The scene features snow-capped peaks reflected in crystal-clear water, with dramatic clouds in the sky. The lighting should be warm and inviting, creating a sense of peace and natural beauty. Include subtle details like pine trees along the shoreline and distant birds in flight.

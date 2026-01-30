@@ -1,0 +1,1 @@
+Create an eye-catching social media post image with vibrant colors and bold typography. The design should be optimized for Instagram stories (9:16 aspect ratio). Include a modern, energetic aesthetic with gradient backgrounds and clean, readable text overlay. The overall mood should be upbeat and engaging.

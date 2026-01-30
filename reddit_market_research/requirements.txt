@@ -1,0 +1,12 @@
+# Reddit Market Research Toolchain Dependencies
+
+click>=8.0.0
+tqdm>=4.64.0
+jsonschema>=4.17.0
+textblob>=0.17.0
+vaderSentiment>=3.3.0
+matplotlib>=3.7.0
+plotly>=5.14.0
+wordcloud>=1.8.0
+langdetect>=1.0.0
+psutil>=5.9.0
