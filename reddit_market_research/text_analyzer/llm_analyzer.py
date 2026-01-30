@@ -11,10 +11,10 @@ from typing import Dict, Any, List, Optional
 from .base_analyzer import BaseAnalyzer
 
 try:
-    import requests
-    REQUESTS_AVAILABLE = True
+    from ollama_text_client import OllamaTextClient
+    OLLAMA_CLIENT_AVAILABLE = True
 except ImportError:
-    REQUESTS_AVAILABLE = False
+    OLLAMA_CLIENT_AVAILABLE = False
 
 
 class LLMAnalyzer(BaseAnalyzer):
@@ -22,13 +22,21 @@ class LLMAnalyzer(BaseAnalyzer):
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(config)
-        if not REQUESTS_AVAILABLE:
-            raise ImportError("requests required for LLM analyzer")
+        if not OLLAMA_CLIENT_AVAILABLE:
+            raise ImportError("ollama_text_client required for LLM analyzer")
 
         self.base_url = self.config.get('llm_base_url', 'http://localhost:11434')
         self.model = self.config.get('llm_model', 'mistral:latest')
         self.max_retries = self.config.get('max_retries', 3)
         self.retry_delay = self.config.get('retry_delay', 1.0)
+        
+        # Initialize Ollama client
+        self.client = OllamaTextClient(
+            base_url=self.base_url,
+            timeout=30,
+            max_retries=self.max_retries,
+            retry_delay=self.retry_delay
+        )
 
         # Load prompt template
         self.prompt_template = self._load_prompt_template()
@@ -133,24 +141,20 @@ Rules:
         }
 
     def _call_llm(self, prompt: str) -> Optional[str]:
-        """Make API call to Ollama."""
-        url = f"{self.base_url}/api/generate"
-        payload = {
-            "model": self.model,
-            "prompt": prompt,
-            "stream": False,
-            "options": {
-                "temperature": 0.1,  # Low temperature for consistent analysis
-                "top_p": 0.9
-            }
-        }
-
-        response = requests.post(url, json=payload, timeout=30)
-        if response.status_code == 200:
-            result = response.json()
-            return result.get('response', '').strip()
-        else:
-            raise Exception(f"LLM API error: {response.status_code}")
+        """Make API call to Ollama using OllamaTextClient."""
+        try:
+            response = self.client.generate(
+                model=self.model,
+                prompt=prompt,
+                stream=False,
+                options={
+                    "temperature": 0.1,  # Low temperature for consistent analysis
+                    "top_p": 0.9
+                }
+            )
+            return response.get('response', '').strip()
+        except Exception as e:
+            raise Exception(f"LLM API error: {str(e)}")
 
     def _parse_llm_response(self, response: str) -> Optional[Dict[str, Any]]:
         """Parse JSON response from LLM."""
