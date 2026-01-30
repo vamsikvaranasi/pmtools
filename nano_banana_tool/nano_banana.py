@@ -21,8 +21,8 @@ ASPECT_RATIOS = {
 
 # Model options
 MODELS = {
-    "1": ("nano-banana", "Nano Banana (google/gemini-2.5-flash-image-preview)"),
-    "2": ("nano-banana-pro", "Nano Banana Pro (google/gemini-3-pro-image-preview)"),
+    "1": ("nano_banana", "Nano Banana (google/gemini-2.5-flash-image-preview)"),
+    "2": ("nano_banana_pro", "Nano Banana Pro (google/gemini-3-pro-image-preview)"),
 }
 
 
@@ -301,21 +301,21 @@ Examples:
   python nano_banana.py
 
   # CLI mode with single image
-  python nano_banana.py --model nano-banana-pro --input-images img1.jpg --prompt "A beautiful sunset"
+  python nano_banana.py --model nano_banana_pro --input-images img1.jpg --prompt "A beautiful sunset"
 
   # CLI mode with multiple images
-  python nano_banana.py --model nano-banana-pro --aspect-ratio 16:9 --input-images img1.jpg img2.png img3.jpg --prompt-file prompts/product-mockup.txt
+  python nano_banana.py --model nano_banana_pro --aspect-ratio 16:9 --input-images img1.jpg img2.png img3.jpg --prompt-file prompts/product_mockup.md
 
   # Reset session and generate
-  python nano_banana.py --reset-session --model nano-banana --prompt "A cat wearing sunglasses"
+  python nano_banana.py --reset-session --model nano_banana --prompt "A cat wearing sunglasses"
         """
     )
     
     parser.add_argument(
         "--model",
         type=str,
-        default="nano-banana-pro",
-        help="Model to use: 'nano-banana' or 'nano-banana-pro' (default: nano-banana-pro)"
+        default="nano_banana_pro",
+        help="Model to use: 'nano_banana' or 'nano_banana_pro' (default: nano_banana_pro)"
     )
     
     parser.add_argument(

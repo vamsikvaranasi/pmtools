@@ -39,14 +39,16 @@ def _get_model_identifier(model_name: str) -> str:
     Convert friendly model name to OpenRouter identifier.
     
     Args:
-        model_name: Friendly name ("nano-banana", "nano-banana-pro") or full OpenRouter identifier
+        model_name: Friendly name ("nano_banana", "nano_banana_pro") or full OpenRouter identifier
     
     Returns:
         OpenRouter model identifier string
     """
     model_map = {
-        "nano-banana": MODEL_NANO_BANANA,
-        "nano-banana-pro": MODEL_NANO_BANANA_PRO,
+        "nano_banana": MODEL_NANO_BANANA,
+        "nano_banana_pro": MODEL_NANO_BANANA_PRO,
+        "nano-banana": MODEL_NANO_BANANA,  # Backward compatibility
+        "nano-banana-pro": MODEL_NANO_BANANA_PRO,  # Backward compatibility
     }
     
     # If it's a friendly name, map it

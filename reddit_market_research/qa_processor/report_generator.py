@@ -45,7 +45,7 @@ class QAReportGenerator:
         json_report = self._generate_json_report(
             community, conversations, pain_points_data, solutions_data
         )
-        json_file = output_dir / f"q-n-a_report_{community.replace('r/', '')}.json"
+        json_file = output_dir / f"qa_report_{community.replace('r/', '')}.json"
         with open(json_file, 'w', encoding='utf-8') as f:
             json.dump(json_report, f, indent=2, ensure_ascii=False)
         reports['json'] = json_file
@@ -54,13 +54,13 @@ class QAReportGenerator:
         md_report = self._generate_markdown_report(
             community, conversations, pain_points_data, solutions_data
         )
-        md_file = output_dir / f"q-n-a_report_{community.replace('r/', '')}.md"
+        md_file = output_dir / f"qa_report_{community.replace('r/', '')}.md"
         with open(md_file, 'w', encoding='utf-8') as f:
             f.write(md_report)
         reports['markdown'] = md_file
 
         # Generate conversations JSON
-        conversations_file = output_dir / f"q-n-a_conversations_{community.replace('r/', '')}.json"
+        conversations_file = output_dir / f"qa_conversations_{community.replace('r/', '')}.json"
         conversations_data = {
             'community': community,
             'generatedAt': datetime.utcnow().isoformat(),

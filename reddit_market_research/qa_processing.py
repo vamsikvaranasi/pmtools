@@ -33,9 +33,9 @@ class QAProcessor:
 
         # Output files
         community_name = self.community.replace('r/', '') if self.community.startswith('r/') else self.community
-        self.qa_report_json = output_dir / f"q-n-a_report_{community_name}.json"
-        self.qa_report_md = output_dir / f"q-n-a_report_{community_name}.md"
-        self.conversations_json = output_dir / f"q-n-a_conversations_{community_name}.json"
+        self.qa_report_json = output_dir / f"qa_report_{community_name}.json"
+        self.qa_report_md = output_dir / f"qa_report_{community_name}.md"
+        self.conversations_json = output_dir / f"qa_conversations_{community_name}.json"
         self.pain_points_json = output_dir / f"pain_points_{community_name}.json"
         self.solutions_json = output_dir / f"solutions_{community_name}.json"
         self.processing_summary = output_dir / "qa_processing_summary.md"
@@ -123,9 +123,6 @@ class QAProcessor:
             print(f"Error loading JSON: {e}")
             return []
 
-        print(f"✅ Loaded {len(enriched_objects)} enriched objects")
-        return enriched_objects
-
     def _group_conversations(self, enriched_objects: list) -> Dict[str, Dict[str, Any]]:
         """Group objects into Q&A conversations."""
         print("🔗 Grouping Q&A conversations...")
@@ -194,9 +191,9 @@ class QAProcessor:
 - **Solutions identified**: {self.stats['solutions_identified']}
 
 ## Output Files
-- `q-n-a_report_{self.community.replace('r/', '')}.json` - Comprehensive JSON report
-- `q-n-a_report_{self.community.replace('r/', '')}.md` - Human-readable Markdown report
-- `q-n-a_conversations_{self.community.replace('r/', '')}.json` - Conversation threads
+ - `qa_report_{self.community.replace('r/', '')}.json` - Comprehensive JSON report
+- `qa_report_{self.community.replace('r/', '')}.md` - Human-readable Markdown report
+- `qa_conversations_{self.community.replace('r/', '')}.json` - Conversation threads
 - `pain_points_{self.community.replace('r/', '')}.json` - Pain points analysis
 - `solutions_{self.community.replace('r/', '')}.json` - Solutions analysis
 
