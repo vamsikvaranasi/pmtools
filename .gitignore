@@ -6,3 +6,5 @@ __pycache__/
 plans/
 generated_images/
 *.egg-info/
+test_data/
+reddit_data/

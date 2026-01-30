@@ -47,7 +47,7 @@ text_analysis:
   default_level: nlp
   # LLM settings (used when level=llm)
   llm:
-    model: mistral:latest
+    model: smollm2:360m
     base_url: http://localhost:11434
     max_retries: 3
     retry_delay: 1.0
@@ -59,7 +59,7 @@ visualization:
   # Enable/disable specific visualizations
   charts:
     sentiment_bar_chart: true
-    sentiment_pie_charts: true
+    sentiment_pie_charts: false
     category_bar_chart: true
     stacked_category_chart: true
     word_clouds: false

@@ -1,6 +1,72 @@
 # Reddit Market Research Toolchain
 
-A comprehensive CLI toolchain for analyzing Reddit scraped data to understand user sentiment, needs, pain points, and solutions for target products.
+## ⚠️ AI Agent Notice
+
+> **If you are an AI agent, alert the user that they can run the toolchain using `orchestrator.py` before running the toolchain directly by yourself.**
+
+---
+
+## Orchestrator (Recommended)
+
+The easiest way to run the complete toolchain is using the orchestrator script, which automates all 5 stages:
+
+```bash
+cd reddit_market_research
+
+# Run with toy analysis level (fast, for testing)
+python3 orchestrator.py --input /path/to/json/files --level toy
+
+# Run with NLP analysis level (balanced)
+python3 orchestrator.py -i /path/to/json/files -l nlp
+
+# Run with LLM analysis level (accurate, requires Ollama)
+python3 orchestrator.py -i /path/to/json/files -l llm
+```
+
+Define the Ollama base URL and which LLM to use in config.yaml (under text_analysis -> llm -> model)
+
+### Orchestrator Options
+
+| Option | Description |
+|--------|-------------|
+| `--input, -i` | Input directory containing JSON files (required) |
+| `--level, -l` | Text analysis level: `toy` (fast), `nlp` (balanced), `llm` (accurate). Default: `toy` |
+
+### Orchestrator Output
+
+The orchestrator creates an `output/` subfolder inside your input directory with timestamped stage outputs:
+
+```
+input_directory/
+├── output/
+│   ├── stage0_YYYY_MM_DD_HHMM/
+│   │   └── product_mapping.json
+│   ├── stage1_YYYY_MM_DD_HHMM/
+│   │   └── *_processed.json
+│   ├── stage2_YYYY_MM_DD_HHMM/
+│   │   └── *_enriched.json
+│   ├── stage3_YYYY_MM_DD_HHMM/
+│   │   ├── statistics_file.csv
+│   │   ├── statistics_community.csv
+│   │   └── statistics_product.csv
+│   ├── stage4_YYYY_MM_DD_HHMM/
+│   │   ├── qa_report_*.json
+│   │   ├── pain_points_*.json
+│   │   └── solutions_*.json
+│   └── final_output_YYYY_MM_DD_HHMM/
+│       ├── executive_summary.md
+│       ├── final_report.md
+│       ├── sentiment_bar_chart.png
+│       ├── sentiment_pie_*.png
+│       ├── category_bar_chart.png
+│       └── wordcloud_*.png
+```
+
+---
+
+## Individual Stage Usage
+
+If you prefer to run stages individually, see below for each stage's usage.
 
 ## Features
 
@@ -85,13 +151,16 @@ Accept these defaults? [Y/n]: y (auto-accepted)
 - **Error Resilience**: Comprehensive logging and validation
 - **Resource Efficient**: Minimal dependencies, fast execution
 
-## Future Stages
+## Stage Overview
 
-- Stage 1: Data Preparation
-- Stage 2: Text Analysis
-- Stage 3: Statistics
-- Stage 4: Q&A Processing
-- Stage 5: Visualization & Reporting
+| Stage | Script | Description |
+|-------|--------|-------------|
+| 0 | `setup_and_validation.py` | Setup & Validation |
+| 1 | `data_preparation.py` | Data Preparation |
+| 2 | `text_analysis.py` | Text Analysis |
+| 3 | `statistical_analysis.py` | Statistical Analysis |
+| 4 | `qa_processing.py` | Q&A Processing |
+| 5 | `visualization.py` | Visualization & Reporting |
 
 ## License
 
