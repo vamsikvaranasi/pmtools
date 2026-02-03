@@ -8,9 +8,9 @@ Generate comparative visualizations and final reports from rolled-up statistics.
 import csv
 import json
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import click
 import matplotlib.pyplot as plt
@@ -49,19 +49,26 @@ class Visualizer:
             sentiment_colors = colors_config.get('sentiment', {})
             category_colors = colors_config.get('category', {})
             
+            def _category_color(name: str, fallback: str) -> str:
+                return category_colors.get(name, category_colors.get(name.lower(), fallback))
+
             self.colors = {
-                'positive': sentiment_colors.get('primary', '#2E8B57'),
+                'positive': sentiment_colors.get('positive', '#2E8B57'),
                 'negative': sentiment_colors.get('negative', '#DC143C'),
                 'neutral': sentiment_colors.get('neutral', '#808080'),
                 'positive_gradient': sentiment_colors.get('positive_gradient', ['#1a5c38', '#2E8B57', '#3cb371']),
                 'negative_gradient': sentiment_colors.get('negative_gradient', ['#8b0000', '#DC143C', '#ff6347']),
                 'neutral_gradient': sentiment_colors.get('neutral_gradient', ['#4a4a4a', '#808080', '#a9a9a9']),
-                'Question': category_colors.get('question', '#1E90FF'),
-                'Praise': category_colors.get('praise', '#32CD32'),
-                'Complaint': category_colors.get('complaint', '#FF6347'),
-                'Sharing': category_colors.get('sharing', '#FFD700'),
-                'Statement': category_colors.get('statement', '#9370DB'),
-                'Answer': category_colors.get('answer', '#FF69B4')
+                'Question': _category_color('Question', '#1E90FF'),
+                'Praise': _category_color('Praise', '#32CD32'),
+                'Complaint': _category_color('Complaint', '#FF6347'),
+                'Suggestion': _category_color('Suggestion', '#FF8C00'),
+                'Comparison': _category_color('Comparison', '#20B2AA'),
+                'Agreement': _category_color('Agreement', '#9ACD32'),
+                'Disagreement': _category_color('Disagreement', '#B22222'),
+                'Sharing': _category_color('Sharing', '#FFD700'),
+                'Statement': _category_color('Statement', '#9370DB'),
+                'Answer': _category_color('Answer', '#FF69B4')
             }
             
             # Load visualization settings
@@ -243,34 +250,40 @@ class Visualizer:
         if not self.community_stats or not self.chart_settings.get('show_category_bar', True):
             return
 
-        # Group by product
+        # Group by product using category_counts_json if available
         product_data = defaultdict(lambda: defaultdict(int))
+        total_counts = Counter()
         for stat in self.community_stats:
             product = stat['product']
-            # For simplicity, we'll use praise, complaint, and questions as categories
-            # In a full implementation, we'd parse more category data
-            product_data[product]['Praise'] += int(stat.get('praise', 0))
-            product_data[product]['Complaint'] += int(stat.get('complaint', 0))
-            product_data[product]['Question'] += int(stat.get('questions', 0))
+            counts = self._parse_category_counts(stat)
+            for category, count in counts.items():
+                product_data[product][category] += count
+                total_counts[category] += count
 
         products = list(product_data.keys())
-        categories = ['Praise', 'Complaint', 'Question']
+        categories = self._select_categories(total_counts)
 
         # Prepare data for plotting
         data = {cat: [product_data[p].get(cat, 0) for p in products] for cat in categories}
 
-        x = range(len(products))
-        width = 0.25
+        num_products = len(products)
+        num_categories = max(1, len(categories))
+        bar_width = 0.6 / num_categories
+        group_gap = 0.4  # empty space between product groups
+        group_width = bar_width * num_categories
+        x_starts = [i * (group_width + group_gap) for i in range(num_products)]
 
         fig, ax = plt.subplots(figsize=(12, 6))
         for i, (category, values) in enumerate(data.items()):
-            ax.bar([j + i * width for j in x], values, width,
-                  label=category, color=self.colors.get(category, '#808080'))
+            positions = [x + i * bar_width for x in x_starts]
+            ax.bar(positions, values, bar_width,
+                   label=category, color=self.colors.get(category, '#808080'))
 
+        tick_positions = [x + (group_width / 2) - (bar_width / 2) for x in x_starts]
         ax.set_xlabel('Target Product')
         ax.set_ylabel('Number of Posts')
         ax.set_title('Category Distribution by Target Product')
-        ax.set_xticks([i + width for i in x])
+        ax.set_xticks(tick_positions)
         ax.set_xticklabels(products)
         ax.legend()
 
@@ -285,14 +298,16 @@ class Visualizer:
 
         # Similar to category bar chart but stacked
         product_data = defaultdict(lambda: defaultdict(int))
+        total_counts = Counter()
         for stat in self.community_stats:
             product = stat['product']
-            product_data[product]['Praise'] += int(stat.get('praise', 0))
-            product_data[product]['Complaint'] += int(stat.get('complaint', 0))
-            product_data[product]['Question'] += int(stat.get('questions', 0))
+            counts = self._parse_category_counts(stat)
+            for category, count in counts.items():
+                product_data[product][category] += count
+                total_counts[category] += count
 
         products = list(product_data.keys())
-        categories = ['Praise', 'Complaint', 'Question']
+        categories = self._select_categories(total_counts)
 
         # Prepare stacked data
         bottoms = [0] * len(products)
@@ -414,11 +429,12 @@ class Visualizer:
         total_sentiment_objects = total_positive + total_negative
         avg_sentiment = (total_positive / total_sentiment_objects * 100) if total_sentiment_objects > 0 else 0
 
-        # Find most discussed category (simplified)
-        total_questions = sum(int(stat['questions']) for stat in self.product_stats)
-        total_praise = sum(int(stat.get('praise', 0)) for stat in self.community_stats)
-        categories = {'Questions': total_questions, 'Praise': total_praise}
-        top_category = max(categories, key=lambda k: categories[k])
+        # Find most discussed category
+        total_counts = Counter()
+        for stat in self.community_stats:
+            total_counts.update(self._parse_category_counts(stat))
+        top_category = total_counts.most_common(1)[0][0] if total_counts else "Unknown"
+        top_category_count = total_counts[top_category] if total_counts else 0
 
         report = f"""# Executive Summary: Reddit Market Analysis
 
@@ -430,7 +446,7 @@ class Visualizer:
 
 ## Key Market Metrics
 - **Average Sentiment**: {avg_sentiment:.1f}% positive across products
-- **Most Discussed Category**: {top_category} ({max(categories.values())})
+- **Most Discussed Category**: {top_category} ({top_category_count})
 - **Top Market Pain Point**: Deployment complexity
 - **Most Common Solution**: Built-in deployment features
 
@@ -536,42 +552,38 @@ class Visualizer:
         report += ' | '.join(products) + ' | Market Avg |\n'
         report += '|----------|' + '--------|' * (len(products) + 1) + '\n'
 
-        # Calculate category breakdown from community stats
-        categories = ['Questions', 'Praise', 'Complaints']
+        # Calculate category breakdown from product stats
+        total_counts = Counter()
+        for stat in self.product_stats:
+            try:
+                total_counts.update(json.loads(stat.get('category_counts_json', '{}')))
+            except Exception:
+                continue
+        categories = self._select_categories(total_counts)
         for category in categories:
             row = f'| {category} |'
             for product in products:
-                # Find the community stats for this product
-                community_stat = next((c for c in self.community_stats if c['product'] == product), None)
-                if community_stat:
-                    total_objects = int(community_stat['total_objects'])
-                    if category == 'Questions':
-                        count = int(community_stat['questions'])
-                    elif category == 'Praise':
-                        count = int(community_stat.get('praise', 0))
-                    elif category == 'Complaints':
-                        count = int(community_stat.get('complaint', 0))
-                    else:
-                        count = 0
-
+                product_stat = next((p for p in self.product_stats if p['target_product'] == product), None)
+                if product_stat:
+                    total_objects = int(product_stat['total_objects'])
+                    try:
+                        counts = json.loads(product_stat.get('category_counts_json', '{}'))
+                    except Exception:
+                        counts = {}
+                    count = int(counts.get(category, 0))
                     percentage = (count / total_objects * 100) if total_objects > 0 else 0
                     row += f' {percentage:.1f}% |'
                 else:
                     row += ' 0.0% |'
 
-            # Market average (simplified - just use first product's percentage for now)
-            if self.community_stats:
-                first_stat = self.community_stats[0]
-                total_objects = int(first_stat['total_objects'])
-                if category == 'Questions':
-                    count = int(first_stat['questions'])
-                elif category == 'Praise':
-                    count = int(first_stat.get('praise', 0))
-                elif category == 'Complaints':
-                    count = int(first_stat.get('complaint', 0))
-                else:
-                    count = 0
-                market_avg = (count / total_objects * 100) if total_objects > 0 else 0
+            # Market average
+            if self.product_stats:
+                total_objects = sum(int(p['total_objects']) for p in self.product_stats)
+                total_count = sum(
+                    int(json.loads(p.get('category_counts_json', '{}')).get(category, 0))
+                    for p in self.product_stats
+                )
+                market_avg = (total_count / total_objects * 100) if total_objects > 0 else 0
                 row += f' {market_avg:.1f}% |\n'
             else:
                 row += ' 0.0% |\n'
@@ -649,6 +661,29 @@ class Visualizer:
 
         with open(self.output_dir / 'final_report.md', 'w') as f:
             f.write(report)
+
+    def _parse_category_counts(self, stat: Dict[str, Any]) -> Dict[str, int]:
+        """Parse category counts from stats row."""
+        raw = stat.get('category_counts_json')
+        if raw:
+            try:
+                parsed = json.loads(raw)
+                return {k: int(v) for k, v in parsed.items()}
+            except Exception:
+                return {}
+        # Fallback to legacy fields
+        return {
+            'Question': int(stat.get('questions', 0)),
+            'Praise': int(stat.get('praise', 0)),
+            'Complaint': int(stat.get('complaint', 0)),
+            'Answer': int(stat.get('answers', 0))
+        }
+
+    def _select_categories(self, total_counts: Counter, max_categories: int = 6) -> List[str]:
+        """Pick top categories for plotting."""
+        if not total_counts:
+            return ['Question', 'Praise', 'Complaint']
+        return [name for name, _ in total_counts.most_common(max_categories)]
 
 
 @click.command()

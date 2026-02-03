@@ -17,10 +17,10 @@ from tqdm import tqdm
 
 # Handle imports for both module and script execution
 try:
-    from .text_analyzer import BaseAnalyzer, ToyAnalyzer, NLPAnalyzer, LLMAnalyzer
+    from .text_analyzer import BaseAnalyzer, ToyAnalyzer, VADERAnalyzer, DistilBERTAnalyzer, LLMAnalyzer
     from .config_loader import Config, get_output_dir
 except ImportError:
-    from text_analyzer import BaseAnalyzer, ToyAnalyzer, NLPAnalyzer, LLMAnalyzer
+    from text_analyzer import BaseAnalyzer, ToyAnalyzer, VADERAnalyzer, DistilBERTAnalyzer, LLMAnalyzer
     from config_loader import Config, get_output_dir
 
 
@@ -29,7 +29,9 @@ class TextAnalysisProcessor:
 
     ANALYSIS_LEVELS = {
         'toy': ToyAnalyzer,
-        'nlp': NLPAnalyzer,
+        'vader': VADERAnalyzer,
+        'distilbert': DistilBERTAnalyzer,
+        'nlp': VADERAnalyzer,
         'llm': LLMAnalyzer
     }
 
@@ -52,12 +54,15 @@ class TextAnalysisProcessor:
         
         # Merge provided config with defaults from config.yaml
         default_llm_config = text_config.get('llm', {})
+        distilbert_config = text_config.get('distilbert', {})
         self.config = {
             'llm_model': config.get('llm_model', default_llm_config.get('model', 'mistral:latest')) if config else default_llm_config.get('model', 'mistral:latest'),
             'llm_base_url': config.get('llm_url', default_llm_config.get('base_url', 'http://localhost:11434')) if config else default_llm_config.get('base_url', 'http://localhost:11434'),
             'max_retries': config.get('max_retries', default_llm_config.get('max_retries', 3)) if config else default_llm_config.get('max_retries', 3),
             'retry_delay': config.get('retry_delay', default_llm_config.get('retry_delay', 1.0)) if config else default_llm_config.get('retry_delay', 1.0),
             'prompt_file': config.get('prompt_file', text_config.get('prompt_file')) if config else text_config.get('prompt_file'),
+            'distilbert_model': config.get('distilbert_model', distilbert_config.get('model', 'iam-tsr/distilbert-finetuned-sentiment-analysis')) if config else distilbert_config.get('model', 'iam-tsr/distilbert-finetuned-sentiment-analysis'),
+            'distilbert_label_map': config.get('distilbert_label_map', distilbert_config.get('label_map', {})) if config else distilbert_config.get('label_map', {})
         }
 
         # Output files - directly in output_dir (no subfolders)
@@ -81,14 +86,17 @@ class TextAnalysisProcessor:
 
     def _create_analyzer(self) -> BaseAnalyzer:
         """Create the appropriate analyzer based on level."""
-        analyzer_class = self.ANALYSIS_LEVELS.get(self.level)
+        level = self.level
+        if level == 'nlp':
+            level = self.config_obj.text_analysis_config.get('nlp_backend', 'vader')
+        analyzer_class = self.ANALYSIS_LEVELS.get(level)
         if not analyzer_class:
-            raise ValueError(f"Unknown analysis level: {self.level}")
+            raise ValueError(f"Unknown analysis level: {level}")
 
         try:
             return analyzer_class(self.config)
         except ImportError as e:
-            raise ImportError(f"Required dependencies not available for {self.level} analysis: {e}")
+            raise ImportError(f"Required dependencies not available for {level} analysis: {e}")
 
     def run(self) -> bool:
         """Run the complete text analysis."""
@@ -244,8 +252,8 @@ class TextAnalysisProcessor:
               required=True, help='Processed JSON file to analyze')
 @click.option('--output', 'output_dir', type=click.Path(path_type=Path),
               default=None, help='Output directory for results (auto-managed if not specified)')
-@click.option('--level', type=click.Choice(['toy', 'nlp', 'llm']),
-              default='toy', help='Analysis level (toy=fast, nlp=balanced, llm=accurate)')
+@click.option('--level', type=click.Choice(['toy', 'nlp', 'vader', 'distilbert', 'llm']),
+              default='toy', help='Analysis level (toy=fast, nlp=backend, vader, distilbert, llm=accurate)')
 @click.option('--llm-model', default=None, help='LLM model for LLM analysis')
 @click.option('--llm-url', default=None, help='Ollama server URL')
 @click.option('--prompt-file', default=None, help='Custom prompt file for LLM analysis')

@@ -104,9 +104,10 @@ Text: {text}
 Respond with valid JSON in this exact format:
 {{
     "sentiment": "positive" or "neutral" or "negative",
-    "category": "Question|Statement|Praise|Complaint|Sharing|Answer|Agreement|Disagreement",
+    "category": "Question|Statement|Praise|Complaint|Sharing|Answer|Agreement|Disagreement|Suggestion|Comparison",
     "confidence": 0.0-1.0,
-    "reasoning": "brief explanation"
+    "reasoning": "brief explanation",
+    "subcategory": "optional short label if applicable"
 }}
 
 Rules:
@@ -187,8 +188,8 @@ Rules:
                     data['sentiment'] = self._validate_sentiment(data['sentiment'])
                     data['category'] = self._validate_category(data['category'])
                     data['confidence'] = max(0.0, min(1.0, float(data.get('confidence', 0.5))))
-                    # Add is_question based on category
-                    data['is_question'] = data['category'] == 'Question'
+                    if 'subcategory' in data and data['subcategory'] is not None:
+                        data['subcategory'] = str(data['subcategory']).strip() or None
                     return data
 
         except (json.JSONDecodeError, ValueError, KeyError) as e:

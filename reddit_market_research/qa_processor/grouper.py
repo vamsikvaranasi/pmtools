@@ -47,8 +47,9 @@ class QAGrouper:
             post_id = post.get('id')
             analysis = post.get('analysis', {})
 
-            # Check if this post is a question or complaint with a question
-            if analysis.get('category') == 'Question' or (analysis.get('category') == 'Complaint' and analysis.get('is_question', False)):
+            # Check if this post is a question (category-driven; fallback to legacy is_question)
+            is_question = analysis.get('category') == 'Question' or analysis.get('is_question') is True
+            if is_question:
                 conversation = {
                     'postId': post_id,
                     'question': self._extract_question_data(post),

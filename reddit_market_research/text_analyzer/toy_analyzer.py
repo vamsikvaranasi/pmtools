@@ -26,6 +26,8 @@ class ToyAnalyzer(BaseAnalyzer):
 
     # Question patterns
     QUESTION_WORDS = {'how', 'can', 'what', 'why', 'when', 'where', 'who', 'is', 'are', 'do', 'does'}
+    SUGGESTION_PATTERNS = {'should add', 'would be great', 'i wish', 'please add', 'feature request'}
+    COMPARISON_PATTERNS = {' vs ', ' versus ', ' compared to ', ' better than ', ' worse than ', ' alternative '}
 
     def analyze_object(self, obj: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze a single object with rule-based methods."""
@@ -89,6 +91,18 @@ class ToyAnalyzer(BaseAnalyzer):
         if self._detect_question(text):
             return 'Question'
 
+        # Answer detection (comments only)
+        if data_type == 'comment' and self._detect_answer(text):
+            return 'Answer'
+
+        # Suggestion / feature request
+        if any(pattern in text for pattern in self.SUGGESTION_PATTERNS):
+            return 'Suggestion'
+
+        # Comparison
+        if any(pattern in text for pattern in self.COMPARISON_PATTERNS):
+            return 'Comparison'
+
         # Praise detection
         if any(word in text for word in self.POSITIVE_WORDS):
             if data_type == 'comment':
@@ -105,6 +119,12 @@ class ToyAnalyzer(BaseAnalyzer):
         if any(word in text for word in self.NEGATIVE_WORDS):
             return 'Complaint'
 
+        if data_type == 'comment':
+            if any(word in text for word in {'agree', 'yes', 'true', 'correct'}):
+                return 'Agreement'
+            if any(word in text for word in {'disagree', 'no', 'wrong'}):
+                return 'Disagreement'
+
         # Default
         return 'Statement'
 
@@ -120,3 +140,6 @@ class ToyAnalyzer(BaseAnalyzer):
             return True
 
         return False
+
+    def _detect_answer(self, text: str) -> bool:
+        return any(phrase in text for phrase in {'try ', 'you can', 'solution', 'fixed', 'works for me'})

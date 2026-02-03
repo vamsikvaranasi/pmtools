@@ -16,7 +16,7 @@ class BaseAnalyzer(ABC):
     # Valid categories
     VALID_CATEGORIES = [
         "Question", "Statement", "Praise", "Complaint", "Sharing",
-        "Answer", "Agreement", "Disagreement"
+        "Answer", "Agreement", "Disagreement", "Suggestion", "Comparison"
     ]
 
     # Valid sentiments
