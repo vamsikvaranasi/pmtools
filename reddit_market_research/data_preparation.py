@@ -7,6 +7,7 @@ Uses config.yaml for settings and creates timestamped output directories.
 """
 
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -45,6 +46,8 @@ class DataPreprocessor:
             'post': data_config.get('post_fields', ['id', 'url', 'title', 'communityName', 'body', 'dataType', 'createdAt', 'upVotes']),
             'comment': data_config.get('comment_fields', ['id', 'url', 'postId', 'parentId', 'communityName', 'body', 'dataType', 'createdAt', 'upVotes'])
         }
+        self.min_upvotes = int(data_config.get('min_upvotes', 0))
+        self.min_word_count = int(data_config.get('min_word_count', 0))
 
         # Output files - directly in output_dir (no subfolders)
         basename = input_file.stem
@@ -60,6 +63,8 @@ class DataPreprocessor:
             'processed_objects': 0,
             'skipped_objects': 0,
             'language_filtered': 0,
+            'upvotes_filtered': 0,
+            'word_count_filtered': 0,
             'invalid_objects': 0,
             'object_types': {'post': 0, 'comment': 0},
             'communities': set(),
@@ -183,10 +188,11 @@ class DataPreprocessor:
             return None
 
         # Check language
-        text = obj.get('body', '') + ' ' + obj.get('title', '')
+        text = self._combine_text(obj)
+        normalized_text = self._normalize_text(text)
         if text.strip():
             try:
-                lang = detect(text)
+                lang = detect(normalized_text)
                 if lang != 'en':
                     self.stats['language_filtered'] += 1
                     return None
@@ -210,6 +216,23 @@ class DataPreprocessor:
                     'id': obj.get('id')
                 })
                 return None
+
+        # Normalize text fields before filtering
+        reduced = self._normalize_fields(reduced)
+
+        # Filter by upvotes threshold
+        upvotes = reduced.get('upVotes')
+        if isinstance(upvotes, int) and upvotes < self.min_upvotes:
+            self.stats['upvotes_filtered'] += 1
+            return None
+
+        # Filter by word count threshold (title + body)
+        combined_text = self._combine_text(reduced)
+        normalized_text = self._normalize_text(combined_text)
+        word_count = self._word_count(normalized_text)
+        if word_count < self.min_word_count:
+            self.stats['word_count_filtered'] += 1
+            return None
 
         # Validate community name
         community = reduced.get('communityName')
@@ -238,6 +261,44 @@ class DataPreprocessor:
 
         return reduced
 
+    def _combine_text(self, obj: Dict[str, Any]) -> str:
+        """Combine title and body for analysis."""
+        title = obj.get('title', '') or ''
+        body = obj.get('body', '') or ''
+        return f"{title} {body}".strip()
+
+    def _word_count(self, text: str) -> int:
+        """Count words in normalized text."""
+        if not text:
+            return 0
+        return len(text.split())
+
+    def _normalize_fields(self, obj: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize text fields in the reduced object."""
+        normalized = obj.copy()
+        if 'title' in normalized and normalized['title']:
+            normalized['title'] = self._normalize_text(normalized['title'])
+        if 'body' in normalized and normalized['body']:
+            normalized['body'] = self._normalize_text(normalized['body'])
+        return normalized
+
+    def _normalize_text(self, text: str) -> str:
+        """Normalize text for consistent analysis."""
+        if not text:
+            return ""
+        normalized = text.strip()
+        # Remove code fences
+        normalized = re.sub(r"```.*?```", " ", normalized, flags=re.DOTALL)
+        # Remove inline code markers
+        normalized = re.sub(r"`([^`]+)`", r"\1", normalized)
+        # Replace markdown links with their label
+        normalized = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", normalized)
+        # Remove URLs
+        normalized = re.sub(r"https?://\S+", " ", normalized)
+        # Normalize whitespace
+        normalized = re.sub(r"\s+", " ", normalized)
+        return normalized.strip()
+
     def write_processed_data(self, data: List[Dict[str, Any]]) -> None:
         """Write processed data to JSON file."""
         with open(self.processed_file, 'w', encoding='utf-8') as f:
@@ -256,6 +317,8 @@ class DataPreprocessor:
             f.write(f"- **Processed objects**: {self.stats['processed_objects']}\n")
             f.write(f"- **Skipped objects**: {self.stats['skipped_objects']}\n")
             f.write(f"- **Language filtered**: {self.stats['language_filtered']}\n")
+            f.write(f"- **Upvotes filtered**: {self.stats['upvotes_filtered']}\n")
+            f.write(f"- **Word count filtered**: {self.stats['word_count_filtered']}\n")
             f.write(f"- **Invalid objects**: {self.stats['invalid_objects']}\n\n")
 
             f.write("## Object Types\n\n")
@@ -288,6 +351,8 @@ class DataPreprocessor:
                 'processed_objects': self.stats['processed_objects'],
                 'skipped_objects': self.stats['skipped_objects'],
                 'language_filtered': self.stats['language_filtered'],
+                'upvotes_filtered': self.stats['upvotes_filtered'],
+                'word_count_filtered': self.stats['word_count_filtered'],
                 'invalid_objects': self.stats['invalid_objects'],
                 'errors': self.stats['errors']
             },

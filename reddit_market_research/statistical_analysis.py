@@ -141,10 +141,13 @@ class StatisticsCalculator:
             positive_percent = (positive_posts / total_objects * 100) if total_objects > 0 else 0
 
             # Category counts
-            questions = sum(1 for obj in objects if obj.analysis.is_question)
-            answers = sum(1 for obj in objects if obj.analysis.category == 'Answer')
-            praise = sum(1 for obj in objects if obj.analysis.category == 'Praise')
-            complaint = sum(1 for obj in objects if obj.analysis.category == 'Complaint')
+            category_counts = Counter(obj.analysis.category for obj in objects)
+            questions = category_counts.get('Question', 0)
+            answers = category_counts.get('Answer', 0)
+            praise = category_counts.get('Praise', 0)
+            complaint = category_counts.get('Complaint', 0)
+            top_category = category_counts.most_common(1)[0][0] if category_counts else "Unknown"
+            category_counts_json = json.dumps(category_counts)
 
             # Issues and solutions (placeholder - would need actual extraction logic)
             issues_found = 0  # TODO: Implement issue extraction
@@ -171,6 +174,8 @@ class StatisticsCalculator:
                 answers=answers,
                 praise=praise,
                 complaint=complaint,
+                category_counts_json=category_counts_json,
+                top_category=top_category,
                 issues_found=issues_found,
                 solutions_found=solutions_found,
                 issues_json=issues_json,
@@ -203,6 +208,12 @@ class StatisticsCalculator:
             answers = sum(f.answers for f in files)
             praise = sum(f.praise for f in files)
             complaint = sum(f.complaint for f in files)
+            category_counts = Counter()
+            for f in files:
+                try:
+                    category_counts.update(json.loads(f.category_counts_json))
+                except Exception:
+                    continue
             issues_count = sum(f.issues_found for f in files)
             solutions_count = sum(f.solutions_found for f in files)
 
@@ -214,8 +225,7 @@ class StatisticsCalculator:
             answer_rate = (answers / questions * 100) if questions > 0 else 0
 
             # Top category (simplified - just pick the highest count)
-            categories = {'Question': questions, 'Praise': praise, 'Complaint': complaint}
-            top_category = max(categories, key=lambda k: categories[k]) if categories else 'Unknown'
+            top_category = category_counts.most_common(1)[0][0] if category_counts else 'Unknown'
 
             # Get product mapping
             product = self.product_mapping.get(community, "Unknown")
@@ -241,6 +251,7 @@ class StatisticsCalculator:
                 praise=praise,
                 complaint=complaint,
                 top_category=top_category,
+                category_counts_json=json.dumps(category_counts),
                 issues_count=issues_count,
                 solutions_count=solutions_count,
                 top_pain_point=top_pain_point,
@@ -272,6 +283,12 @@ class StatisticsCalculator:
             neutral_posts = sum(c.neutral_posts for c in communities)
             questions = sum(c.questions for c in communities)
             answers = sum(c.answers for c in communities)
+            category_counts = Counter()
+            for c in communities:
+                try:
+                    category_counts.update(json.loads(c.category_counts_json))
+                except Exception:
+                    continue
 
             # Weighted averages
             total_posts = sum(c.posts for c in communities)
@@ -302,7 +319,8 @@ class StatisticsCalculator:
                 answer_rate=round(answer_rate, 1),
                 top_pain_point=top_pain_point,
                 top_solution=top_solution,
-                market_share_percent=round(market_share_percent, 1)
+                market_share_percent=round(market_share_percent, 1),
+                category_counts_json=json.dumps(category_counts)
             ))
 
         return product_stats
@@ -315,14 +333,16 @@ class StatisticsCalculator:
             writer.writerow([
                 'level', 'file_name', 'community', 'total_objects', 'posts', 'comments',
                 'positive_posts', 'negative_posts', 'neutral_posts', 'positive_percent', 'questions', 'answers',
-                'praise', 'complaint', 'issues_found', 'solutions_found', 'issues_json', 'solutions_json'
+                'praise', 'complaint', 'category_counts_json', 'top_category', 'issues_found', 'solutions_found',
+                'issues_json', 'solutions_json'
             ])
             # Write data
             for stat in stats:
                 writer.writerow([
                     stat.level, stat.file_name, stat.community, stat.total_objects, stat.posts, stat.comments,
                     stat.positive_posts, stat.negative_posts, stat.neutral_posts, stat.positive_percent, stat.questions, stat.answers,
-                    stat.praise, stat.complaint, stat.issues_found, stat.solutions_found, stat.issues_json, stat.solutions_json
+                    stat.praise, stat.complaint, stat.category_counts_json, stat.top_category,
+                    stat.issues_found, stat.solutions_found, stat.issues_json, stat.solutions_json
                 ])
 
     def _write_community_stats_csv(self, stats: List[CommunityStats]):
@@ -333,14 +353,16 @@ class StatisticsCalculator:
             writer.writerow([
                 'level', 'community', 'product', 'total_files', 'total_objects', 'posts', 'comments',
                 'positive_posts', 'negative_posts', 'neutral_posts', 'positive_percent', 'questions', 'answers',
-                'answer_rate', 'praise', 'complaint', 'top_category', 'issues_count', 'solutions_count', 'top_pain_point', 'top_solution'
+                'answer_rate', 'praise', 'complaint', 'top_category', 'category_counts_json',
+                'issues_count', 'solutions_count', 'top_pain_point', 'top_solution'
             ])
             # Write data
             for stat in stats:
                 writer.writerow([
                     stat.level, stat.community, stat.product, stat.total_files, stat.total_objects, stat.posts, stat.comments,
                     stat.positive_posts, stat.negative_posts, stat.neutral_posts, stat.positive_percent, stat.questions, stat.answers,
-                    stat.answer_rate, stat.praise, stat.complaint, stat.top_category, stat.issues_count, stat.solutions_count, stat.top_pain_point, stat.top_solution
+                    stat.answer_rate, stat.praise, stat.complaint, stat.top_category, stat.category_counts_json,
+                    stat.issues_count, stat.solutions_count, stat.top_pain_point, stat.top_solution
                 ])
 
     def _write_product_stats_csv(self, stats: List[ProductStats]):
@@ -351,14 +373,14 @@ class StatisticsCalculator:
             writer.writerow([
                 'level', 'target_product', 'total_communities', 'total_files', 'total_objects', 'posts', 'comments',
                 'positive_posts', 'negative_posts', 'neutral_posts', 'positive_percent', 'questions', 'answers',
-                'answer_rate', 'top_pain_point', 'top_solution', 'market_share_percent'
+                'answer_rate', 'top_pain_point', 'top_solution', 'market_share_percent', 'category_counts_json'
             ])
             # Write data
             for stat in stats:
                 writer.writerow([
                     stat.level, stat.target_product, stat.total_communities, stat.total_files, stat.total_objects, stat.posts, stat.comments,
                     stat.positive_posts, stat.negative_posts, stat.neutral_posts, stat.positive_percent, stat.questions, stat.answers,
-                    stat.answer_rate, stat.top_pain_point, stat.top_solution, stat.market_share_percent
+                    stat.answer_rate, stat.top_pain_point, stat.top_solution, stat.market_share_percent, stat.category_counts_json
                 ])
 
 

@@ -1,10 +1,28 @@
+# 1. Caches and model artefacts
 __pycache__/
 *.py[cod]
 *.pyo
+*.egg-info/
+.cache/
+.huggingface/
+.transformers/
+.matplotlib/
+**/mpl_cache/
+**/hf_cache/
+**/hf_home/
+**/transformers_cache/
+**/torch_cache/
+**/model_cache/
+**/models_cache/
+**/matplotlib-*/
+
+# 2. System files
 .env
 .DS_Store
-plans/
+
+# 3. Output and data folders
 generated_images/
-*.egg-info/
 test_data/
 reddit_data/
+plans/
+docs/

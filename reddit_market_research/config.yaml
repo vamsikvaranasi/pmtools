@@ -40,11 +40,17 @@ data_processing:
     - dataType
     - createdAt
     - upVotes
+  # Minimum upvotes required for inclusion
+  min_upvotes: 0
+  # Minimum word count (title + body) required for inclusion
+  min_word_count: 0
 
 # Text Analysis Configuration
 text_analysis:
   # Default analysis level: toy, nlp, or llm
   default_level: nlp
+  # NLP backend: vader or distilbert
+  nlp_backend: vader
   # LLM settings (used when level=llm)
   llm:
     model: smollm2:360m
@@ -53,6 +59,13 @@ text_analysis:
     retry_delay: 1.0
   # Custom prompt file (optional)
   prompt_file: null
+  # DistilBERT settings (used when nlp_backend=distilbert)
+  distilbert:
+    model: iam-tsr/distilbert-finetuned-sentiment-analysis
+    label_map:
+      label_0: negative
+      label_1: neutral
+      label_2: positive
 
 # Visualization Configuration
 visualization:
@@ -77,6 +90,10 @@ visualization:
       Question: "#1E90FF"   # Dodger blue
       Praise: "#32CD32"     # Lime green
       Complaint: "#FF6347"  # Tomato
+      Suggestion: "#FF8C00" # Dark orange
+      Comparison: "#20B2AA" # Light sea green
+      Agreement: "#9ACD32"  # Yellow green
+      Disagreement: "#B22222" # Firebrick
       Sharing: "#FFD700"    # Gold
       Statement: "#9370DB"  # Medium purple
       Answer: "#FF69B4"     # Hot pink

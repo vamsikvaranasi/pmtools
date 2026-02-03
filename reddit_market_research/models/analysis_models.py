@@ -4,14 +4,15 @@ Data models for analysis results and statistics.
 
 from datetime import datetime
 from typing import Dict, Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AnalysisResult(BaseModel):
     """Result of text analysis."""
-    sentiment: str = Field(..., description="positive or negative")
+    sentiment: str = Field(..., description="positive, neutral, or negative")
     category: str = Field(..., description="Content category")
-    is_question: bool = Field(default=False, description="Whether content is a question")
+    subcategory: Optional[str] = Field(default=None, description="Optional subcategory label")
+    is_question: Optional[bool] = Field(default=None, description="Legacy question flag (optional)")
     confidence: float = Field(default=0.0, description="Analysis confidence 0.0-1.0")
     reasoning: Optional[str] = Field(default=None, description="Explanation for analysis")
     processed_at: datetime = Field(default_factory=datetime.utcnow)
@@ -38,8 +39,7 @@ class EnrichedObject(BaseModel):
     # Analysis results
     analysis: AnalysisResult
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class FileStats(BaseModel):
@@ -58,6 +58,8 @@ class FileStats(BaseModel):
     answers: int
     praise: int
     complaint: int
+    category_counts_json: str
+    top_category: str
     issues_found: int
     solutions_found: int
     issues_json: str  # JSON string of issues frequency
@@ -83,6 +85,7 @@ class CommunityStats(BaseModel):
     praise: int
     complaint: int
     top_category: str
+    category_counts_json: str
     issues_count: int
     solutions_count: int
     top_pain_point: str
@@ -108,3 +111,4 @@ class ProductStats(BaseModel):
     top_pain_point: str
     top_solution: str
     market_share_percent: float
+    category_counts_json: str
