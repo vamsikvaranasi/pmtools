@@ -210,6 +210,8 @@ class TextAnalysisProcessor:
             f.write(f"**Input file**: {self.input_file}\n")
             f.write(f"**Output file**: {self.enriched_file}\n")
             f.write(f"**Analysis level**: {self.level.upper()}\n")
+            if self.level == 'toy':
+                f.write("**Toy mode warning**: Demo only; outputs are not usable or trustworthy for real analysis.\n")
             if self.level == 'llm':
                 f.write(f"**LLM Model**: {self.config.get('llm_model', 'mistral:latest')}\n")
             f.write(f"**Processed at**: {datetime.now(timezone.utc).isoformat()}\n\n")
@@ -263,6 +265,8 @@ def main(input_file: Path, output_dir: Optional[Path], level: str, llm_model: st
     click.echo(f"Input: {input_file}")
     click.echo(f"Output: {output_dir or 'auto-managed'}")
     click.echo(f"Level: {level}")
+    if level == 'toy':
+        click.echo("⚠️  Toy mode is demo-only; outputs are not usable or trustworthy for real analysis.")
     if prompt_file:
         click.echo(f"Using custom prompt: {prompt_file}")
 
