@@ -13,7 +13,7 @@ The easiest way to run the complete toolchain is using the orchestrator script, 
 ```bash
 cd reddit_market_research
 
-# Run with toy analysis level (fast, for testing)
+# Run with toy analysis level (demo only; preview output shape)
 python3 orchestrator.py --input /path/to/json/files --level toy
 
 # Run with NLP analysis level (balanced)
@@ -31,6 +31,14 @@ Define the Ollama base URL and which LLM to use in config.yaml (under text_analy
 |--------|-------------|
 | `--input, -i` | Input directory containing JSON files (required) |
 | `--level, -l` | Text analysis level: `toy` (fast), `nlp` (balanced), `llm` (accurate). Default: `toy` |
+
+### Why `toy` mode exists (and why you shouldn't trust it)
+
+`toy` mode exists so you can run the toolchain locally and preview the shape of the outputs before committing to the imports and downloads needed for the `nlp` and `llm` analysis modes.
+
+- The `nlp` and `llm` levels rely on external NLP/LLM backends that require additional dependencies and can involve model downloads.
+- `toy` is intentionally lightweight and fast, meant only for validating that the pipeline runs and seeing what the enriched JSON and reports look like.
+- **`toy` mode is a demo only** — its outputs are neither usable nor trustworthy for real analysis.
 
 ### Orchestrator Output
 
@@ -123,6 +131,8 @@ python3 text_analysis.py --input /path/to/processed.json --output /path/to/outpu
 - `--level`: `toy` (fast), `nlp` (config backend), `vader`, `distilbert`, `llm` (accurate)
 - `--llm-model`: LLM model name (default: mistral:latest)
 - `--llm-url`: Ollama server URL (default: http://localhost:11434)
+
+**Toy mode note:** `toy` is a lightweight demo to preview output structure; it exists to avoid committing to NLP/LLM dependencies/downloads up front. Its sentiment/category outputs are heuristic and are neither usable nor trustworthy for real analysis.
 
 **Outputs:**
 - `{basename}_enriched.json`: JSON with analysis fields added
