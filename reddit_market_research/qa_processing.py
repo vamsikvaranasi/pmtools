@@ -27,13 +27,8 @@ def get_qa_processor_class(variant: str = "plus"):
             from qa_processor_plus.qa_processor_plus import QAProcessorPlus
             return QAProcessorPlus
     else:
-        # Standard qa_processor
-        try:
-            from .qa_processor import QAProcessor
-            return QAProcessor
-        except ImportError:
-            from qa_processor import QAProcessor
-            return QAProcessor
+        # Standard qa_processor - return the local QAProcessor class defined below
+        return None  # Will use the local QAProcessor class directly
 
 
 # Handle imports for both module and script execution
@@ -296,8 +291,8 @@ def main(input_file: Path, output_dir: Path, community: Optional[str], variant: 
             processor = QAProcessorClass(input_file, output_dir, community)
             stats = processor.process()
     else:
-        # Use standard QAProcessor
-        processor = QAProcessorClass(input_file, output_dir, community)
+        # Use standard QAProcessor (local class defined in this file)
+        processor = QAProcessor(input_file, output_dir, community)
         stats = processor.process()
 
     click.echo("\n🎉 Q&A Processing Complete!")
