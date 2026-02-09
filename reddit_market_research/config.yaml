@@ -50,7 +50,7 @@ text_analysis:
   # Default analysis level: toy, nlp, or llm
   default_level: nlp
   # NLP backend: vader or distilbert
-  nlp_backend: vader
+  nlp_backend: distilbert
   # LLM settings (used when level=llm)
   llm:
     model: smollm2:360m
@@ -129,7 +129,7 @@ qa_processor:
   # Select which QA processor to use: "standard" or "plus"
   # - "standard": Uses qa_processor module (basic functionality)
   # - "plus": Uses qa_processor_plus module (advanced features)
-  variant: "plus"
+  variant: "standard"
 
 # QA Processor Plus Configuration
 qa_processor_plus:

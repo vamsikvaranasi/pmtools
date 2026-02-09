@@ -54,7 +54,9 @@ class QAProcessorPlus:
             "categories": ["Question", "Complaint", "Suggestion"]
         })
         self.filter = InputFilter(filter_config)
-        self.span_extractor = PainSpanExtractor()
+        self.span_extractor = PainSpanExtractor(
+            self.config.get("span_extractor", {"max_span_length": 200, "max_spans_per_question": 3, "min_span_words": 5})
+        )
         self.product_area_classifier = ProductAreaClassifier()
         self.journey_stage_classifier = JourneyStageClassifier()
         self.label_generator = TemplateLabelGenerator()
