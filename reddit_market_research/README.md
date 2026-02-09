@@ -192,6 +192,54 @@ Outputs:
 - `output/nlp_benchmark_YYYY_MM_DD_HHMM/` with stage folders for each backend
 - `nlp_benchmark_report.md` containing links and embedded charts
 
+## QA Processor Plus
+
+QA Processor Plus is an advanced QA processing system for product management insights, integrated into this toolchain.
+
+### Features
+
+- **Conversation Filtering**: Remove noise and irrelevant content
+- **Span Extraction**: Identify key questions, answers, and phrases
+- **Classification**: Categorize conversations by topic and intent
+- **Label Generation**: Create descriptive summaries and tags
+- **Solution Extraction**: Identify actionable insights and recommendations
+- **Embedding Support**: Advanced text embeddings with multiple models
+- **Vector Storage**: Efficient similarity search and storage
+- **Clustering**: Group similar conversations for analysis
+- **Metrics**: Evaluate clustering quality and characteristics
+- **LLM Synthesis**: Generate comprehensive insights using large language models
+- **Insight Generation**: Identify trends, issues, and opportunities
+- **Legacy Support**: Compatibility with existing systems
+- **Grouping**: Flexible grouping by various criteria
+- **Reporting**: Generate comprehensive reports and visualizations
+- **Plugin System**: Extensible architecture with plugin support
+
+### Quick Start
+
+```python
+from reddit_market_research.qa_processor_plus import QAProcessorPlus
+
+# Initialize processor
+processor = QAProcessorPlus()
+
+# Process conversations
+results = processor.process_conversations(conversations)
+
+# Access results
+print(results["llm_summary"])
+print(results["clusters"])
+```
+
+### CLI Usage
+
+```bash
+python -m reddit_market_research.qa_processor_plus process <input> --output <output_dir>
+python -m reddit_market_research.qa_processor_plus cluster <input> --n-clusters 5
+python -m reddit_market_research.qa_processor_plus report <input> --type summary
+```
+
+See `reddit_market_research/qa_processor_plus/README.md` for detailed documentation.
+
 ## License
 
 Part of the Reddit Insights project.

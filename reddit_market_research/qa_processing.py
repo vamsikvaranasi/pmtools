@@ -3,20 +3,45 @@
 Q&A Processing - Stage 4
 
 Extract, group, and summarize questions and answers from enriched Reddit data.
+Supports both standard and plus variants based on config.
 """
 
 import json
 import sys
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 import click
 from tqdm import tqdm
 
+
+def get_qa_processor_class(variant: str = "plus"):
+    """Get the appropriate QA processor class based on variant."""
+    if variant == "plus":
+        try:
+            # relative Try import first (when running as module)
+            from .qa_processor_plus.qa_processor_plus import QAProcessorPlus
+            return QAProcessorPlus
+        except ImportError:
+            # Fallback to absolute import (when running as script)
+            from qa_processor_plus.qa_processor_plus import QAProcessorPlus
+            return QAProcessorPlus
+    else:
+        # Standard qa_processor
+        try:
+            from .qa_processor import QAProcessor
+            return QAProcessor
+        except ImportError:
+            from qa_processor import QAProcessor
+            return QAProcessor
+
+
 # Handle imports for both module and script execution
 try:
+    from .config_loader import Config
     from .qa_processor import QAGrouper, PainPointExtractor, SolutionExtractor, QAReportGenerator
 except ImportError:
+    from config_loader import Config
     from qa_processor import QAGrouper, PainPointExtractor, SolutionExtractor, QAReportGenerator
 
 
@@ -211,23 +236,74 @@ class QAProcessor:
 @click.option('--output', '-o', 'output_dir', type=click.Path(path_type=Path), default=None,
               help='Output directory (auto-generated if not provided)')
 @click.option('--community', '-c', help='Target community (auto-detected if not provided)')
-def main(input_file: Path, output_dir: Path, community: Optional[str]):
+@click.option('--variant', '-v', type=click.Choice(['standard', 'plus']), default=None,
+              help='QA processor variant (overrides config)')
+def main(input_file: Path, output_dir: Path, community: Optional[str], variant: Optional[str]):
     """Process Q&A data from enriched Reddit JSON."""
-    # Use config loader for output directory
+    # Use config loader for output directory and settings
     if output_dir is None:
         from config_loader import get_output_dir
         output_dir = get_output_dir("qa_processing")
     
-    click.echo("🔍 Q&A Processing - Stage 4")
+    # Get processor variant from config or command line
+    processor_variant = variant
+    if processor_variant is None:
+        config = Config()
+        processor_variant = config.get('qa_processor.variant', 'plus')
+    
+    # Get the appropriate processor class
+    QAProcessorClass = get_qa_processor_class(processor_variant)
+    
+    click.echo(f"🔍 Q&A Processing - Stage 4 (variant: {processor_variant})")
     click.echo(f"📁 Input: {input_file}")
     click.echo(f"📁 Output: {output_dir}")
     
-    processor = QAProcessor(input_file, output_dir, community)
-    stats = processor.process()
+    if processor_variant == "plus":
+        # Use QAProcessorPlus from qa_processor_plus
+        try:
+            from qa_processor_plus.qa_processor_plus import QAProcessorPlus
+            plus_processor = QAProcessorPlus()
+            
+            # Set up input/output
+            plus_processor.input_file = input_file
+            plus_processor.output_dir = output_dir
+            output_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Detect community
+            if community:
+                plus_processor.community = community
+            elif hasattr(plus_processor, '_detect_community'):
+                plus_processor.community = plus_processor._detect_community()
+            else:
+                plus_processor.community = "unknown"
+            
+            # Set output files
+            community_name = plus_processor.community.replace('r/', '') if plus_processor.community and plus_processor.community.startswith('r/') else 'unknown'
+            plus_processor.qa_report_json = output_dir / f"qa_report_{community_name}.json"
+            plus_processor.qa_report_md = output_dir / f"qa_report_{community_name}.md"
+            plus_processor.processing_summary = output_dir / "qa_processing_summary.md"
+            
+            # Run processing using the public method
+            if hasattr(plus_processor, 'process_conversations'):
+                with open(input_file, 'r') as f:
+                    conversations = json.load(f)
+                stats = plus_processor.process_conversations(conversations)
+            else:
+                stats = plus_processor.process()
+        except ImportError as e:
+            click.echo(f"⚠️ QAProcessorPlus not available: {e}")
+            click.echo("Falling back to standard QAProcessor")
+            processor = QAProcessorClass(input_file, output_dir, community)
+            stats = processor.process()
+    else:
+        # Use standard QAProcessor
+        processor = QAProcessorClass(input_file, output_dir, community)
+        stats = processor.process()
 
     click.echo("\n🎉 Q&A Processing Complete!")
-    click.echo(f"📊 Processed {stats['total_objects']} objects")
-    click.echo(f"🔍 Found {stats['questions_found']} questions and {stats['answers_found']} answers")
+    click.echo(f"📊 Processed {stats.get('total_objects', 0)} objects")
+    if 'questions_found' in stats:
+        click.echo(f"🔍 Found {stats['questions_found']} questions and {stats['answers_found']} answers")
     click.echo(f"📁 Reports saved to {output_dir}")
 
 

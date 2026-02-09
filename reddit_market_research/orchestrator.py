@@ -239,6 +239,17 @@ class Orchestrator:
         print(f"📄 Found {len(enriched_files)} enriched files to process")
 
         output_dir = self._get_stage_output(4)
+        
+        # Get QA processor variant from config
+        try:
+            from config_loader import Config
+            config = Config()
+            qa_variant = config.get('qa_processor.variant', 'plus')
+        except ImportError:
+            qa_variant = 'plus'
+        
+        print(f"📊 QA Processor variant: {qa_variant}")
+        
         success_count = 0
         fail_count = 0
 
@@ -247,7 +258,8 @@ class Orchestrator:
             cmd = [
                 sys.executable, "qa_processing.py",
                 str(enriched_file),
-                "--output", str(output_dir)
+                "--output", str(output_dir),
+                "--variant", qa_variant
             ]
 
             if self._run_command(cmd, f"Q&A Processing ({enriched_file.name})"):
