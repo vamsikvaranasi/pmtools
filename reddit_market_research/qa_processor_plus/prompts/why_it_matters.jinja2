@@ -1,0 +1,105 @@
+"""
+Why It Matters Template
+
+Jinja2 template for explaining the importance and impact of insights.
+"""
+
+{% extends "base_template.jinja2" %}
+
+{% block content %}
+# Why This Matters: {{ insight_title }}
+
+## Impact Analysis
+
+### Business Impact
+
+**Revenue Impact**: {{ revenue_impact }}
+**Customer Satisfaction**: {{ customer_satisfaction }}
+**Operational Efficiency**: {{ operational_efficiency }}
+
+### Strategic Importance
+
+**Alignment with Goals**: {{ goal_alignment }}
+**Competitive Advantage**: {{ competitive_advantage }}
+**Market Position**: {{ market_position }}
+
+## Root Cause Analysis
+
+### Contributing Factors
+
+{% for factor in contributing_factors %}
+- **{{ factor.type }}**: {{ factor.description }}
+{% endfor %}
+
+### Systemic Issues
+
+{% for issue in systemic_issues %}
+- **{{ issue.category }}**: {{ issue.description }}
+{% endfor %}
+
+## Opportunity Assessment
+
+### Potential Benefits
+
+{% for benefit in potential_benefits %}
+- **{{ benefit.type }}**: {{ benefit.value }}
+{% endfor %}
+
+### Implementation Considerations
+
+{% for consideration in implementation_considerations %}
+- **{{ consideration.type }}**: {{ consideration.description }}
+{% endfor %}
+
+## Recommended Actions
+
+### Short-term Actions
+
+{% for action in short_term_actions %}
+1. **{{ action.title }}**: {{ action.description }}
+   - Priority: {{ action.priority }}
+   - Timeline: {{ action.timeline }}
+   - Owner: {{ action.owner }}
+{% endfor %}
+
+### Long-term Actions
+
+{% for action in long_term_actions %}
+1. **{{ action.title }}**: {{ action.description }}
+   - Priority: {{ action.priority }}
+   - Timeline: {{ action.timeline }}
+   - Owner: {{ action.owner }}
+{% endfor %}
+
+## Success Metrics
+
+### Key Performance Indicators
+
+{% for kpi in kpis %}
+- **{{ kpi.name }}**: Target {{ kpi.target }}, Current {{ kpi.current }}
+{% endfor %}
+
+### Measurement Timeline
+
+{% for timeline in measurement_timeline %}
+- **{{ timeline.period }}**: {{ timeline.metrics }}
+{% endfor %}
+
+## Risk Assessment
+
+### Potential Risks
+
+{% for risk in potential_risks %}
+- **{{ risk.type }}**: {{ risk.description }}
+   - Probability: {{ risk.probability }}
+   - Impact: {{ risk.impact }}
+   - Mitigation: {{ risk.mitigation }}
+{% endfor %}
+
+## Conclusion
+
+This insight represents a {{ significance_level }} opportunity that could 
+{{ potential_outcome }}. Immediate action is recommended to capitalize on 
+this opportunity and address the underlying issues.
+
+{% endblock %}

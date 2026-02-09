@@ -123,3 +123,99 @@ reporting:
 logging:
   level: INFO
   format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# QA Processor Configuration
+qa_processor:
+  # Select which QA processor to use: "standard" or "plus"
+  # - "standard": Uses qa_processor module (basic functionality)
+  # - "plus": Uses qa_processor_plus module (advanced features)
+  variant: "plus"
+
+# QA Processor Plus Configuration
+qa_processor_plus:
+  # Core Configuration
+  core:
+    version: "1.0.0"
+    debug: false
+    log_level: "INFO"
+    timezone: "UTC"
+
+  # Processing Configuration
+  processing:
+    max_conversations: 50000
+    batch_size: 500
+    timeout: 600
+    parallel_processing: true
+    max_depth: 5
+    thread_analysis: true
+    community_analysis: true
+
+  # Embedding Configuration
+  embedding:
+    model: "all-MiniLM-L6-v2"
+    dimension: 384
+    similarity_threshold: 0.75
+    context_window: 512
+    max_tokens: 1000
+    semantic_similarity: true
+    semantic_search: true
+
+  # Clustering Configuration
+  clustering:
+    n_clusters: 8
+    min_cluster_size: 5
+    max_iter: 500
+    random_state: 42
+    hierarchical_clustering: true
+    community_based_clustering: true
+    temporal_clustering: true
+
+  # Plugin Configuration
+  plugins:
+    enabled:
+      - sentence_transformers
+      - ollama
+      - reddit_analysis
+    sentence_transformers:
+      model: "all-MiniLM-L6-v2"
+      cache_size: 10000
+      batch_size: 256
+    ollama:
+      model: "llama3.2"
+      host: "http://localhost:11434"
+      temperature: 0.3
+      max_tokens: 1500
+    reddit_analysis:
+      sentiment_analysis: true
+      category_detection: true
+      community_detection: true
+      temporal_analysis: true
+
+  # Storage Configuration
+  storage:
+    vector_store: "reddit_vector_store.db"
+    cache_dir: ".reddit_cache"
+    max_cache_size: 50000
+    backup_enabled: true
+    backup_interval: 3600
+    compression: true
+
+  # Quality Configuration
+  quality:
+    min_confidence: 0.6
+    max_duplicates: 3
+    min_length: 20
+    max_length: 10000
+    sentiment_threshold: 0.3
+    category_confidence: 0.5
+    community_relevance: 0.4
+
+  # Performance Configuration
+  performance:
+    workers: 8
+    memory_limit: "4GB"
+    cpu_limit: "90%"
+    timeout: 600
+    cache_enabled: true
+    batch_processing: true
+    progressive_loading: true

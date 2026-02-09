@@ -1,0 +1,58 @@
+"""
+Cluster Label Template
+
+Jinja2 template for generating cluster labels and descriptions.
+"""
+
+{% extends "base_template.jinja2" %}
+
+{% block content %}
+# Cluster {{ cluster_id }}: {{ cluster_label }}
+
+## Overview
+
+This cluster contains {{ conversations|length }} conversations related to {{ main_topic }}. 
+
+## Key Characteristics
+
+- **Primary Topic**: {{ main_topic }}
+- **Sentiment**: {{ sentiment }}
+- **Common Themes**: {{ common_themes|join(", ") }}
+- **Key Phrases**: {{ key_phrases|join(", ") }}
+
+## Representative Conversations
+
+{% for conversation in representative_conversations %}
+### Conversation {{ loop.index }}
+
+**Summary**: {{ conversation.summary }}
+
+**Key Points**:
+{% for point in conversation.key_points %}
+- {{ point }}
+{% endfor %}
+
+**Sentiment**: {{ conversation.sentiment }}
+
+{% endfor %}
+
+## Insights
+
+{% for insight in insights %}
+- **{{ insight.type }}**: {{ insight.text }}
+{% endfor %}
+
+## Recommendations
+
+{% for recommendation in recommendations %}
+- {{ recommendation }}
+{% endfor %}
+
+## Statistics
+
+- **Total Conversations**: {{ conversations|length }}
+- **Average Length**: {{ avg_length }} words
+- **Sentiment Distribution**: {{ sentiment_distribution }}
+- **Time Range**: {{ time_range }}
+
+{% endblock %}

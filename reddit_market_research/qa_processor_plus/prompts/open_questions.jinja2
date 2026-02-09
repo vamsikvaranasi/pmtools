@@ -1,0 +1,217 @@
+"""
+Open Questions Template
+
+Jinja2 template for generating open questions and areas for further investigation.
+"""
+
+{% extends "base_template.jinja2" %}
+
+{% block content %}
+# Open Questions and Areas for Investigation
+
+## Knowledge Gaps
+
+### Technical Questions
+
+{% for question in technical_questions %}
+### {{ question.title }}
+
+**Question**: {{ question.text }}
+
+**Current Understanding**: {{ question.current_understanding }}
+
+**Importance**: {{ question.importance }}
+
+**Potential Impact**: {{ question.impact }}
+
+**Suggested Investigation Methods**:
+{% for method in question.methods %}
+- {{ method }}
+{% endfor %}
+
+**Estimated Timeline**: {{ question.timeline }}
+
+**Resources Required**: {{ question.resources }}
+
+---
+
+{% endfor %}
+
+### Business Questions
+
+{% for question in business_questions %}
+### {{ question.title }}
+
+**Question**: {{ question.text }}
+
+**Current Understanding**: {{ question.current_understanding }}
+
+**Importance**: {{ question.importance }}
+
+**Potential Impact**: {{ question.impact }}
+
+**Suggested Investigation Methods**:
+{% for method in question.methods %}
+- {{ method }}
+{% endfor %}
+
+**Estimated Timeline**: {{ question.timeline }}
+
+**Resources Required**: {{ question.resources }}
+
+---
+
+{% endfor %}
+
+## Research Priorities
+
+### High Priority
+
+{% for priority in high_priority %}
+#### {{ priority.title }}
+
+**Objective**: {{ priority.objective }}
+
+**Key Questions**:
+{% for question in priority.questions %}
+- {{ question }}
+{% endfor %}
+
+**Success Criteria**:
+{% for criteria in priority.criteria %}
+- {{ criteria }}
+{% endfor %}
+
+**Timeline**: {{ priority.timeline }}
+
+**Owner**: {{ priority.owner }}
+
+---
+
+{% endfor %}
+
+### Medium Priority
+
+{% for priority in medium_priority %}
+#### {{ priority.title }}
+
+**Objective**: {{ priority.objective }}
+
+**Key Questions**:
+{% for question in priority.questions %}
+- {{ question }}
+{% endfor %}
+
+**Success Criteria**:
+{% for criteria in priority.criteria %}
+- {{ criteria }}
+{% endfor %}
+
+**Timeline**: {{ priority.timeline }}
+
+**Owner**: {{ priority.owner }}
+
+---
+
+{% endfor %}
+
+## Methodology Questions
+
+### Data Collection
+
+{% for question in data_collection_questions %}
+#### {{ question.title }}
+
+**Question**: {{ question.text }}
+
+**Current Approach**: {{ question.current_approach }}
+
+**Limitations**: {{ question.limitations }}
+
+**Alternative Approaches**:
+{% for approach in question.alternatives %}
+- {{ approach }}
+{% endfor %}
+
+**Recommended Approach**: {{ question.recommended }}
+
+---
+
+{% endfor %}
+
+### Analysis Methods
+
+{% for question in analysis_questions %}
+#### {{ question.title }}
+
+**Question**: {{ question.text }}
+
+**Current Method**: {{ question.current_method }}
+
+**Potential Improvements**:
+{% for improvement in question.improvements %}
+- {{ improvement }}
+{% endfor %}
+
+**Validation Approaches**:
+{% for validation in question.validations %}
+- {{ validation }}
+{% endfor %}
+
+---
+
+{% endfor %}
+
+## Next Steps
+
+### Immediate Actions
+
+{% for action in immediate_actions %}
+1. **{{ action.title }}**: {{ action.description }}
+   - Due: {{ action.due_date }}
+   - Owner: {{ action.owner }}
+   - Status: {{ action.status }}
+
+{% endfor %}
+
+### Medium-term Actions
+
+{% for action in medium_term_actions %}
+1. **{{ action.title }}**: {{ action.description }}
+   - Due: {{ action.due_date }}
+   - Owner: {{ action.owner }}
+   - Status: {{ action.status }}
+
+{% endfor %}
+
+### Long-term Actions
+
+{% for action in long_term_actions %}
+1. **{{ action.title }}**: {{ action.description }}
+   - Due: {{ action.due_date }}
+   - Owner: {{ action.owner }}
+   - Status: {{ action.status }}
+
+{% endfor %}
+
+## Success Metrics
+
+### Knowledge Acquisition
+
+{% for metric in knowledge_metrics %}
+- **{{ metric.name }}**: Target {{ metric.target }}, Current {{ metric.current }}
+{% endfor %}
+
+### Impact Measurement
+
+{% for metric in impact_metrics %}
+- **{{ metric.name }}**: Target {{ metric.target }}, Current {{ metric.current }}
+{% endfor %}
+
+## Conclusion
+
+These open questions represent critical areas for further investigation 
+that could significantly enhance our understanding and improve outcomes.
+Prioritizing these questions will help guide future research and development efforts.
+
+{% endblock %}
